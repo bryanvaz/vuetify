@@ -39,6 +39,7 @@ export interface VuetifyPreset {
     default: Theme['default']
     disable: Theme['disable']
     options: Theme['options']
+    shadowMode: Theme['shadowMode']
     themes: Theme['themes']
   }
 

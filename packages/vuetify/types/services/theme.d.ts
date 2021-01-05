@@ -10,6 +10,7 @@ export interface Theme {
     themeCache?: VuetifyThemeCache
     variations?: boolean
   }
+  shadowMode: boolean
   themes: {
     dark: VuetifyThemeVariant
     light: VuetifyThemeVariant
@@ -29,6 +30,7 @@ export interface ThemeOptions {
     themeCache?: VuetifyThemeCache
     variations?: boolean
   }
+  shadowMode?: boolean
   themes?: {
     dark?: Partial<VuetifyThemeVariant>
     light?: Partial<VuetifyThemeVariant>

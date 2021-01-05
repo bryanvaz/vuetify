@@ -46,6 +46,7 @@ export const preset: VuetifyPreset = {
       themeCache: undefined,
       variations: true,
     },
+    shadowMode: false,
     themes: {
       light: {
         primary: '#1976D2',

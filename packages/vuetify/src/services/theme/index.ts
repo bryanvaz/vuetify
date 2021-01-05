@@ -29,11 +29,15 @@ export class Theme extends Service {
 
   public defaults: VuetifyThemes
 
+  public shadowMode = false
+
   private isDark = null as boolean | null
 
   private unwatch = null as (() => void) | null
 
   private vueMeta = null as any | null
+
+  private shadowRoot = null as ShadowRoot | HTMLHeadElement | null
 
   constructor (preset: VuetifyPreset) {
     super()
@@ -43,11 +47,13 @@ export class Theme extends Service {
       disable,
       options,
       themes,
+      shadowMode,
     } = preset[Theme.property]
 
     this.dark = Boolean(dark)
     this.defaults = this.themes = themes
     this.options = options
+    this.shadowMode = !!shadowMode
 
     if (disable) {
       this.disabled = true
@@ -111,6 +117,10 @@ export class Theme extends Service {
       this.initSSR(ssrContext)
     }
 
+    if (this.shadowMode) {
+      this.initShadowRoot(root)
+    }
+
     this.initTheme(root)
   }
 
@@ -129,7 +139,13 @@ export class Theme extends Service {
 
   // Check for existence of style element
   private checkOrCreateStyleElement (): boolean {
-    this.styleEl = document.getElementById('vuetify-theme-stylesheet') as HTMLStyleElement
+    // if using shadowDOM, need to explicitly search the
+    // shadowDOM instead
+    if (this.shadowMode && this.shadowRoot && this.shadowRoot instanceof ShadowRoot) {
+      this.styleEl = this.shadowRoot.getElementById('vuetify-theme-stylesheet') as HTMLStyleElement
+    } else {
+      this.styleEl = document.getElementById('vuetify-theme-stylesheet') as HTMLStyleElement
+    }
 
     /* istanbul ignore next */
     if (this.styleEl) return true
@@ -166,7 +182,13 @@ export class Theme extends Service {
       this.styleEl.setAttribute('nonce', this.options.cspNonce)
     }
 
-    document.head.appendChild(this.styleEl)
+    // append to shadowRoot if using a shadowDOM
+    // and was found during init
+    if (this.shadowMode && this.shadowRoot) {
+      this.shadowRoot.appendChild(this.styleEl)
+    } else {
+      document.head.appendChild(this.styleEl)
+    }
   }
 
   private initVueMeta (root: any) {
@@ -213,6 +235,16 @@ export class Theme extends Service {
         nonce: this.options.cspNonce,
       }],
     })
+  }
+
+  private initShadowRoot (root: Vue) {
+    const rootNode = root && root.$root && root.$root.$el && root.$root.$el.getRootNode()
+    // Only assign shadowRoot if valid
+    if (rootNode instanceof ShadowRoot) {
+      this.shadowRoot = rootNode
+    } else {
+      this.shadowRoot = document.head
+    }
   }
 
   private initSSR (ssrContext?: any) {
